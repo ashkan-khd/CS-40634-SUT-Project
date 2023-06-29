@@ -20,6 +20,9 @@ class Packet:
     def end_time(self):
         return self.start_time + self.process_time
 
+    def __str__(self):
+        return f'({self.priority}): {self.enter_time}, {self.process_time}'
+
     @property
     def has_ran(self):
         return self.start_time is not None

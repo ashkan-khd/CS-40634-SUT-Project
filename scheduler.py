@@ -57,9 +57,9 @@ class Scheduler:
         self.queue = queue
         self.event_set = EventSet()
         self.processors = [Processor() for _ in range(processors)]
-        self.x = x
-        self.y = y
-        self.t = t
+        self.host_rate = x
+        self.process_rate = y
+        self.simulation_time = t
         self.priority_probs = priority_probs
         self.all_packets: typing.List[Packet] = []
 
@@ -67,14 +67,14 @@ class Scheduler:
         return random.choices(list(Priority), weights=self.priority_probs, k=1)[0]
 
     def _get_process_time(self) -> float:
-        return random.expovariate(1 / self.y)
+        return random.expovariate(1 / self.process_rate)
 
     def _create_packets(self):
         current_time = 0
-        while current_time < self.t:
-            interval = random.expovariate(self.x)
+        while current_time < self.simulation_time:
+            interval = random.expovariate(self.host_rate)
             current_time += interval
-            if current_time < self.t:
+            if current_time < self.simulation_time:
                 packet = Packet(
                     enter_time=current_time,
                     priority=self._get_random_priority(),
@@ -86,7 +86,7 @@ class Scheduler:
     def run(self):
         self._create_packets()
         current_time = 0
-        while current_time < self.t and not self.event_set.empty():
+        while current_time < self.simulation_time and not self.event_set.empty():
             for event in self._draw_events():
                 current_time = event.time
                 self._apply_event(event)
@@ -102,7 +102,7 @@ class Scheduler:
 
     def _draw_events(self) -> typing.Iterable[Event]:
         event = self.event_set.pop()
-        if event.time >= self.t:
+        if event.time >= self.simulation_time:
             return
         yield event
         while not self.event_set.empty() and self.event_set.top().time == event:

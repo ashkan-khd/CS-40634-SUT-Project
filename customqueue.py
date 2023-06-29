@@ -78,6 +78,7 @@ class WRRQueue(AbstractQueue):
 
     def _next_queue(self):
         self._current_queue_index = (self._current_queue_index - 1) % len(self.queues)
+        self._current_queue_popped = 0
 
     def empty(self) -> bool:
         return all(queue.empty() for queue in self.queues)
