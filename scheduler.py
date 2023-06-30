@@ -3,7 +3,7 @@ import heapq
 import random
 import typing
 from enum import Enum
-from packet import Packet, Priority
+from packet import Packet
 
 if typing.TYPE_CHECKING:
     from customqueue import AbstractQueue
@@ -38,9 +38,20 @@ class EventSet:
         return len(self.events) == 0
 
 
-@dataclasses.dataclass
 class Processor:
-    is_busy: bool = dataclasses.field(default=False)
+    def __init__(self):
+        self.is_busy = False
+        self._start_time = None
+        self.account = 0
+
+    def set_is_busy(self, current_time):
+        self.is_busy = True
+        self._start_time = current_time
+
+    def reset_is_busy(self, current_time):
+        self.account += current_time - self._start_time
+        self.is_busy = False
+        self._start_time = None
 
 
 class Scheduler:
@@ -63,8 +74,8 @@ class Scheduler:
         self.priority_probs = priority_probs
         self.all_packets: typing.List[Packet] = []
 
-    def _get_random_priority(self) -> Priority:
-        return random.choices(list(Priority), weights=self.priority_probs, k=1)[0]
+    def _get_random_priority(self) -> Packet.Priority:
+        return random.choices(list(Packet.Priority), weights=self.priority_probs, k=1)[0]
 
     def _get_process_time(self) -> float:
         return random.expovariate(1 / self.process_rate)
@@ -76,6 +87,7 @@ class Scheduler:
             current_time += interval
             if current_time < self.simulation_time:
                 packet = Packet(
+                    simulation_time=self.simulation_time,
                     enter_time=current_time,
                     priority=self._get_random_priority(),
                     process_time=self._get_process_time()
@@ -94,11 +106,11 @@ class Scheduler:
 
     def _apply_event(self, event: Event):
         if event.event_type == EventType.SPAWN:
-            added = self.queue.add_packet(event.packet)
+            added = self.queue.add_packet(event.packet, event.time)
             if not added:
                 event.packet.dropped = True
         if event.event_type == EventType.DONE:
-            self.processors[event.packet.processor_index].is_busy = False
+            self.processors[event.packet.processor_index].reset_is_busy(current_time=event.time)
 
     def _draw_events(self) -> typing.Iterable[Event]:
         event = self.event_set.pop()
@@ -112,10 +124,10 @@ class Scheduler:
         if not self.queue.empty():
             for i, processor in enumerate(self.processors):
                 if not processor.is_busy:
-                    packet = self.queue.pop()
+                    packet = self.queue.pop(current_time)
                     packet.processor_index = i
                     packet.start_time = current_time
-                    processor.is_busy = True
+                    processor.set_is_busy(current_time)
                     self.event_set.add_event(Event(time=packet.end_time, event_type=EventType.DONE, packet=packet))
                     if self.queue.empty():
                         break
