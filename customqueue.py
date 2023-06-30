@@ -39,7 +39,7 @@ class AbstractQueue(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def set_observers(self, observers: typing.List[QueueObserver]):
+    def register_observer(self, observers: typing.List[QueueObserver]):
         pass
 
     @abc.abstractmethod
@@ -55,7 +55,7 @@ class BaseQueue(AbstractQueue, abc.ABC):
     def __init__(self):
         self.observers: typing.List[QueueObserver] = []
 
-    def set_observers(self, observers: typing.List[QueueObserver]):
+    def register_observer(self, observers: typing.List[QueueObserver]):
         self.observers = observers
 
     def update_observers(self, observation_type: QueueObserver.Type, **update):
