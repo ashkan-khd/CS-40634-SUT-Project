@@ -45,10 +45,6 @@ class AbstractQueue(abc.ABC):
     @abc.abstractmethod
     def get_all_subqueues(self) -> typing.List['AbstractQueue']:
         pass
-    #
-    # @abc.abstractmethod
-    # def get_all_historical_packets(self) -> typing.List['Packet']:
-    #     pass
 
 
 class BaseQueue(AbstractQueue, abc.ABC):
