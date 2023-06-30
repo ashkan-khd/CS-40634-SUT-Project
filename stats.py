@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING, List, Tuple, Type
 import numpy as np
 from matplotlib import pyplot as plt
 
-
 if TYPE_CHECKING:
     from packet import Packet
     from scheduler import Scheduler
@@ -56,14 +55,26 @@ class SchedulerStats:
         return len([p for p in self._scheduler.all_packets if p.dropped])
 
     @cached_property
+    def all_processed_packets_count(self):
+        return len([p for p in self._scheduler.all_packets if p.has_started])
+
+    @cached_property
+    def all_ended_in_queue_packets_count(self):
+        return len([p for p in self._scheduler.all_packets if not (p.has_started or p.dropped)])
+
+    @cached_property
     def high_priority_packets_waiting_time(self) -> List[float]:
-        return [p.waiting_time for p in self._scheduler.all_packets if p.priority == p.Priority.HIGH]
+        return [
+            p.waiting_time
+            for p in self._scheduler.all_packets
+            if p.priority == p.Priority.HIGH and not p.dropped
+        ]
 
     def configured_log(self):
         print('Long-time-average of queue lengths')
         print('--------------------------')
         for q, L in self.avg_queues_length:
-            print(f'\tL for ({str(q)}): {L}')
+            print(f'\tL_Q for ({str(q)}): {L}')
 
         print(f'Average waiting time in all queues = {self.avg_waiting_time_in_all_queues}')
         print('Average waiting time in each queue:')
@@ -74,9 +85,12 @@ class SchedulerStats:
         print('Processors utilizations')
         print('--------------------------')
         for i, rho in enumerate(self.processors_utilization):
-            print(f'processor #{i}: ρ = {rho}')
+            print(f'processor #{i + 1}: ρ = {rho}')
 
+        print('Packets Status')
         print(f'#Dropped packets = {self.all_dropped_packets_count}')
+        print(f'#Processed packets  = {self.all_processed_packets_count}')
+        print(f'#Ended up in queue packets  = {self.all_ended_in_queue_packets_count}')
 
         count, bins_count = np.histogram(self.high_priority_packets_waiting_time, bins=10)
         pdf = count / sum(count)
@@ -86,6 +100,5 @@ class SchedulerStats:
         plt.title('CDF of high-priority packets waiting time')
         plt.xlabel('waiting time (second)')
         plt.ylabel('cumulative probability')
+        plt.ylim([-0.1, 1.2])
         plt.show()
-
-

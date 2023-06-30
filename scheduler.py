@@ -78,7 +78,7 @@ class Scheduler:
         return random.choices(list(Packet.Priority), weights=self.priority_probs, k=1)[0]
 
     def _get_process_time(self) -> float:
-        return random.expovariate(1 / self.process_rate)
+        return random.expovariate(self.process_rate)
 
     def _create_packets(self):
         current_time = 0

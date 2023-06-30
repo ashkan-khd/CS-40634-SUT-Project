@@ -49,7 +49,7 @@ class QueueLengthObserver(QueueObserver):
         self.safe_add(new_length - 1, current_time - self._previous_update)
 
     def _handle_pop(self, current_time, new_length):
-        self.safe_add(new_length + 1, current_time - self._previous_update)
+        self.safe_add(new_length, current_time - self._previous_update)
 
     def update(self, observation_type: QueueObserver.Type, **update):
         if observation_type not in [self.Type.ADD_QUEUE, self.Type.POP_QUEUE]:
