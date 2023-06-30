@@ -63,13 +63,13 @@ class SchedulerStats:
         print('Long-time-average of queue lengths')
         print('--------------------------')
         for q, L in self.avg_queues_length:
-            print(f'\tL for {str(q)}: {L}')
+            print(f'\tL for ({str(q)}): {L}')
 
         print(f'Average waiting time in all queues = {self.avg_waiting_time_in_all_queues}')
         print('Average waiting time in each queue:')
         print('--------------------------')
         for q, WQ in self.avg_witing_time_in_each_queue:
-            print(f'\tW_Q for {str(q)}: {WQ}')
+            print(f'\tW_Q for ({str(q)}): {WQ}')
 
         print('Processors utilizations')
         print('--------------------------')
@@ -81,8 +81,11 @@ class SchedulerStats:
         count, bins_count = np.histogram(self.high_priority_packets_waiting_time, bins=10)
         pdf = count / sum(count)
         cdf = np.cumsum(pdf)
-        plt.plot(bins_count[1:], cdf, label="CDF")
+        plt.plot(bins_count[1:], cdf, label="Waiting Time CDF")
         plt.legend()
+        plt.title('CDF of high-priority packets waiting time')
+        plt.xlabel('waiting time (second)')
+        plt.ylabel('cumulative probability')
         plt.show()
 
 
